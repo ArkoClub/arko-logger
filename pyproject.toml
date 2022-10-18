@@ -5,7 +5,17 @@ description = "A logger."
 authors = ["Karako <karakohear@gmail.com>"]
 license = "MIT"
 readme = "README.md"
-packages = [{include = "arko_logger"}]
+packages = [{include = "arko_logger", from = "src" }]
+include = ["LICENSE"]
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
 
 [tool.poetry.dependencies]
 python = "^3.8"
@@ -16,3 +26,7 @@ pydantic = "^1.10.2"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[[tool.poetry.source]]
+name = "official-pypi"
+url = "https://pypi.python.org/simple"
