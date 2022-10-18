@@ -1,11 +1,11 @@
 [tool.poetry]
 name = "arko-logger"
-version = "0.1.0"
+version = "0.0.1"
 description = "A logger."
 authors = ["Karako <karakohear@gmail.com>"]
 license = "MIT"
 readme = "README.md"
-packages = [{include = "arko_logger", from = "src" }]
+packages = [{include = "arkologger", from = "src" }]
 include = ["LICENSE"]
 classifiers = [
     "License :: OSI Approved :: MIT License",
