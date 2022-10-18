@@ -20,13 +20,13 @@ from typing import (
 
 from typing_extensions import Self
 
-from arkologger import LoggerConfig
 from arkologger._handler import (
     FileHandler,
     Handler,
 )
 
 if TYPE_CHECKING:
+    from arkologger import LoggerConfig
     from logging import LogRecord  # pylint: disable=unused-import
 
 __all__ = ["Logger", "logger", "logger_config"]
@@ -36,7 +36,7 @@ SysExcInfoType = Union[
     Tuple[None, None, None],
 ]
 ExceptionInfoType = Union[bool, SysExcInfoType, BaseException]
-logger_config: Optional[LoggerConfig] = None
+logger_config: Optional["LoggerConfig"] = None
 logger: Optional["Logger"] = None
 
 NONE = object()
@@ -56,7 +56,9 @@ class Logger(logging.Logger):
                 logger = result
         return cls._instance
 
-    def __init__(self, config: LoggerConfig = None) -> None:
+    def __init__(self, config: "LoggerConfig" = None) -> None:
+        from arkologger import LoggerConfig
+
         global logger_config
         self.config = config or LoggerConfig()
         logger_config = self.config
