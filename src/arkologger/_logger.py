@@ -29,7 +29,7 @@ if TYPE_CHECKING:
     from arkologger import LoggerConfig
     from logging import LogRecord  # pylint: disable=unused-import
 
-__all__ = ["Logger", "logger", "logger_config"]
+__all__ = ["Logger", "logger", "logger_config", "LogFilter"]
 
 SysExcInfoType = Union[
     Tuple[Type[BaseException], BaseException, Optional[TracebackType]],
@@ -39,19 +39,18 @@ ExceptionInfoType = Union[bool, SysExcInfoType, BaseException]
 logger_config: Optional["LoggerConfig"] = None
 logger: Optional["Logger"] = None
 
+_lock = Lock()
 NONE = object()
 
 
 class Logger(logging.Logger):
-    _lock = Lock()
     _instance: Optional["Logger"] = None
 
     def __new__(cls, *args, **kwargs) -> "Logger":
         global logger
-        with cls._lock:
+        with _lock:
             if cls._instance is None:
                 result = super(Logger, cls).__new__(cls)
-                result.__init__(*args, **kwargs)
                 cls._instance = result
                 logger = result
         return cls._instance
@@ -64,7 +63,6 @@ class Logger(logging.Logger):
         logger_config = self.config
         if "PYCHARM_HOSTED" in os.environ:
             print()  # 针对 pycharm 的控制台 bug
-        logging.captureWarnings(True)
         log_path = Path(self.config.project_root).joinpath(self.config.log_path)
         handler, debug_handler, error_handler = (
             # 控制台 log 配置
@@ -93,28 +91,27 @@ class Logger(logging.Logger):
             ),
         )
 
-        default_log_filter = LogFilter().add_filter(default_filter)
-        handler.addFilter(default_log_filter)
-        debug_handler.addFilter(default_log_filter)
-
-        level_ = 10 if config.debug else 20
         logging.basicConfig(
-            level=10 if config.debug else 20,
+            level=10 if self.config.debug else 20,
             format="%(message)s",
             datefmt=self.config.time_format,
             handlers=[handler, debug_handler, error_handler],
         )
-        warnings_logger = logging.getLogger("py.warnings")
-        warnings_logger.addHandler(handler)
-        warnings_logger.addHandler(debug_handler)
+        if config.capture_warnings:
+            logging.captureWarnings(True)
+            warnings_logger = logging.getLogger("py.warnings")
+            warnings_logger.addHandler(handler)
+            warnings_logger.addHandler(debug_handler)
+
+        level_ = 10 if self.config.debug else 20
+        super().__init__(
+            name=self.config.name,
+            level=level_ if self.config.level is None else self.config.level,
+        )
 
         self.addHandler(handler)
         self.addHandler(debug_handler)
         self.addHandler(error_handler)
-
-        super().__init__(
-            name=config.name, level=level_ if config.level is None else config.level
-        )
 
     def success(
         self,
@@ -203,8 +200,3 @@ class LogFilter(logging.Filter):
 
     def filter(self, record: "LogRecord") -> bool:
         return all(map(lambda func: func(record), self._filter_list))
-
-
-def default_filter(record: "LogRecord") -> bool:
-    """默认的过滤器"""
-    return record.name.split(".")[0] in ["TGPaimon", "uvicorn"]

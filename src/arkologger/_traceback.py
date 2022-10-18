@@ -40,7 +40,6 @@ from rich.traceback import (
     Traceback as BaseTraceback,
 )
 
-from arkologger._logger import logger_config
 from arkologger._style import MonokaiProStyle
 
 if TYPE_CHECKING:
@@ -112,6 +111,8 @@ class Traceback(BaseTraceback):
     locals_max_depth: Optional[int]
 
     def __init__(self, *args, locals_max_depth: Optional[int] = None, **kwargs):
+        from arkologger._logger import logger_config
+
         kwargs.update(
             {"show_locals": True, "max_frames": logger_config.traceback_max_frames}
         )
@@ -130,9 +131,9 @@ class Traceback(BaseTraceback):
         word_wrap: bool = False,
         show_locals: bool = False,
         indent_guides: bool = True,
-        locals_max_length: int = logger_config.traceback_locals_max_length,
-        locals_max_string: int = logger_config.traceback_locals_max_string,
-        locals_max_depth: Optional[int] = logger_config.traceback_locals_max_depth,
+        locals_max_length: int = 10,
+        locals_max_string: int = 80,
+        locals_max_depth: Optional[int] = None,
         suppress: Iterable[Union[str, ModuleType]] = (),
         max_frames: int = 100,
     ) -> "Traceback":

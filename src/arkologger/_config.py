@@ -8,6 +8,8 @@ from typing import (
 
 from pydantic import BaseSettings
 
+__all__ = ["LoggerConfig"]
+
 
 class LoggerConfig(BaseSettings):
     _lock = Lock()
@@ -29,6 +31,7 @@ class LoggerConfig(BaseSettings):
     width: int = 180
     keywords: List[str] = []
     time_format: str = "[%Y-%m-%d %X]"
+    capture_warnings: bool = True
 
     log_path: Union[str, Path] = "./logs"
     project_root: Union[str, Path] = Path(".")

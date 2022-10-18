@@ -27,7 +27,6 @@ from rich.text import (
 from rich.theme import Theme
 
 from arkologger._file import FileIO
-from arkologger._logger import logger_config
 from arkologger._style import DEFAULT_STYLE
 from arkologger._traceback import Traceback
 
@@ -70,6 +69,8 @@ class LogRender(DefaultLogRender):
         self._last_time = last_time
 
     def __init__(self, *args, **kwargs):
+        from arkologger._logger import logger_config
+
         super(LogRender, self).__init__(*args, **kwargs)
         self.show_level = True
         self.time_format = logger_config.time_format
@@ -139,6 +140,8 @@ class Handler(DefaultRichHandler):
         locals_max_depth: Optional[int] = None,
         **kwargs,
     ) -> None:
+        from arkologger._logger import logger_config
+
         super(Handler, self).__init__(*args, rich_tracebacks=rich_tracebacks, **kwargs)
         self._log_render = LogRender()
         self.console = log_console
@@ -153,6 +156,8 @@ class Handler(DefaultRichHandler):
         traceback: Optional[Traceback],
         message_renderable: Optional["ConsoleRenderable"],
     ) -> "ConsoleRenderable":
+        from arkologger._logger import logger_config
+
         if record.pathname != "<input>":
             try:
                 path = str(
