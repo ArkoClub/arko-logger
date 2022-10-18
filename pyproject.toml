@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "arko-logger"
+version = "0.1.0"
+description = "A logger."
+authors = ["Karako <karakohear@gmail.com>"]
+license = "MIT"
+readme = "README.md"
+packages = [{include = "arko_logger"}]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+rich = "^12.6.0"
+pydantic = "^1.10.2"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
