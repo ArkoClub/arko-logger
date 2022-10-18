@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "arko-logger"
-version = "0.0.2"
+version = "0.0.3"
 description = "A logger."
 authors = ["Karako <karakohear@gmail.com>"]
 license = "MIT"
