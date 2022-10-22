@@ -1,6 +1,9 @@
 import os
 import traceback as traceback_
-from types import ModuleType, TracebackType
+from types import (
+    ModuleType,
+    TracebackType,
+)
 from typing import (
     Any,
     Dict,
@@ -111,11 +114,8 @@ class Traceback(BaseTraceback):
     locals_max_depth: Optional[int]
 
     def __init__(self, *args, locals_max_depth: Optional[int] = None, **kwargs):
-        from arkologger._logger import logger_config
 
-        kwargs.update(
-            {"show_locals": True, "max_frames": logger_config.traceback_max_frames}
-        )
+        kwargs.update({"show_locals": True})
         super(Traceback, self).__init__(*args, **kwargs)
         self.locals_max_depth = locals_max_depth
 
@@ -129,7 +129,7 @@ class Traceback(BaseTraceback):
         extra_lines: int = 3,
         theme: Optional[str] = None,
         word_wrap: bool = False,
-        show_locals: bool = False,
+        show_locals: bool = True,
         indent_guides: bool = True,
         locals_max_length: int = 10,
         locals_max_string: int = 80,
@@ -370,3 +370,10 @@ class Traceback(BaseTraceback):
                         if frame.locals
                         else syntax
                     )
+
+    def __getstate__(self):
+        breakpoint()
+        return self.__dict__
+
+    def __setstate__(self, state):
+        self.__dict__ = state

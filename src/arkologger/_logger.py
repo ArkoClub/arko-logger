@@ -22,22 +22,20 @@ from typing_extensions import Self
 
 from arkologger._handler import (
     FileHandler,
-    MultiProcessingHandler,
+    Handler,
 )
 
 if TYPE_CHECKING:
     from arkologger import LoggerConfig
     from logging import LogRecord  # pylint: disable=unused-import
 
-__all__ = ["Logger", "logger", "logger_config", "LogFilter"]
+__all__ = ["Logger", "LogFilter"]
 
 SysExcInfoType = Union[
     Tuple[Type[BaseException], BaseException, Optional[TracebackType]],
     Tuple[None, None, None],
 ]
 ExceptionInfoType = Union[bool, SysExcInfoType, BaseException]
-logger_config: Optional["LoggerConfig"] = None
-logger: Optional["Logger"] = None
 
 _lock = Lock()
 NONE = object()
@@ -47,30 +45,33 @@ class Logger(logging.Logger):
     _instance: Optional["Logger"] = None
 
     def __new__(cls, *args, **kwargs) -> "Logger":
-        global logger
         with _lock:
             if cls._instance is None:
                 result = super(Logger, cls).__new__(cls)
                 cls._instance = result
-                logger = result
         return cls._instance
 
     def __init__(self, config: "LoggerConfig" = None) -> None:
         from arkologger import LoggerConfig
 
-        global logger_config
         self.config = config or LoggerConfig()
-        logger_config = self.config
-        if "PYCHARM_HOSTED" in os.environ:
-            print()  # 针对 pycharm 的控制台 bug
+
+        level_ = 10 if self.config.debug else 20
+        super().__init__(
+            name=self.config.name,
+            level=level_ if self.config.level is None else self.config.level,
+        )
+
         log_path = Path(self.config.project_root).joinpath(self.config.log_path)
         handler, debug_handler, error_handler = (
             # 控制台 log 配置
-            MultiProcessingHandler(
+            Handler(
                 width=self.config.width,
                 locals_max_length=self.config.traceback_locals_max_length,
                 locals_max_string=self.config.traceback_locals_max_string,
                 locals_max_depth=self.config.traceback_locals_max_depth,
+                project_root=self.config.project_root,
+                log_time_format=self.config.time_format,
             ),
             # debug.log 配置
             FileHandler(
@@ -81,6 +82,8 @@ class Logger(logging.Logger):
                 locals_max_depth=1,
                 locals_max_length=self.config.traceback_locals_max_length,
                 locals_max_string=self.config.traceback_locals_max_string,
+                project_root=self.config.project_root,
+                log_time_format=self.config.time_format,
             ),
             # error.log 配置
             FileHandler(
@@ -91,9 +94,10 @@ class Logger(logging.Logger):
                 locals_max_length=self.config.traceback_locals_max_length,
                 locals_max_string=self.config.traceback_locals_max_string,
                 locals_max_depth=self.config.traceback_locals_max_depth,
+                project_root=self.config.project_root,
+                log_time_format=self.config.time_format,
             ),
         )
-
         logging.basicConfig(
             level=10 if self.config.debug else 20,
             format="%(message)s",
@@ -105,12 +109,6 @@ class Logger(logging.Logger):
             warnings_logger = logging.getLogger("py.warnings")
             warnings_logger.addHandler(handler)
             warnings_logger.addHandler(debug_handler)
-
-        level_ = 10 if self.config.debug else 20
-        super().__init__(
-            name=self.config.name,
-            level=level_ if self.config.level is None else self.config.level,
-        )
 
         self.addHandler(handler)
         self.addHandler(debug_handler)
