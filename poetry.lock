@@ -9,6 +9,11 @@ python-versions = "*"
 [package.extras]
 test = ["flake8 (==3.7.8)", "hypothesis (==3.55.3)"]
 
+[package.source]
+type = "legacy"
+url = "https://pypi.python.org/simple"
+reference = "official-pypi"
+
 [[package]]
 name = "pydantic"
 version = "1.10.2"
@@ -24,8 +29,13 @@ typing-extensions = ">=4.1.0"
 dotenv = ["python-dotenv (>=0.10.4)"]
 email = ["email-validator (>=1.0.3)"]
 
+[package.source]
+type = "legacy"
+url = "https://pypi.python.org/simple"
+reference = "official-pypi"
+
 [[package]]
-name = "Pygments"
+name = "pygments"
 version = "2.13.0"
 description = "Pygments is a syntax highlighting package written in Python."
 category = "main"
@@ -34,6 +44,11 @@ python-versions = ">=3.6"
 
 [package.extras]
 plugins = ["importlib-metadata"]
+
+[package.source]
+type = "legacy"
+url = "https://pypi.python.org/simple"
+reference = "official-pypi"
 
 [[package]]
 name = "rich"
@@ -51,6 +66,11 @@ typing-extensions = {version = ">=4.0.0,<5.0", markers = "python_version < \"3.9
 [package.extras]
 jupyter = ["ipywidgets (>=7.5.1,<8.0.0)"]
 
+[package.source]
+type = "legacy"
+url = "https://pypi.python.org/simple"
+reference = "official-pypi"
+
 [[package]]
 name = "typing-extensions"
 version = "4.4.0"
@@ -59,10 +79,15 @@ category = "main"
 optional = false
 python-versions = ">=3.7"
 
+[package.source]
+type = "legacy"
+url = "https://pypi.python.org/simple"
+reference = "official-pypi"
+
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "010ea25ef5e1116ce0111b64c307b3a6e2ec6c41e244e3b37eca65d11cc1e7c7"
+content-hash = "7665b76d2052375248cf0f8a41328e9124afcb6c79ce395ad6da1a473cb64dd4"
 
 [metadata.files]
 commonmark = [
@@ -107,7 +132,7 @@ pydantic = [
     {file = "pydantic-1.10.2-py3-none-any.whl", hash = "sha256:1b6ee725bd6e83ec78b1aa32c5b1fa67a3a65badddde3976bca5fe4568f27709"},
     {file = "pydantic-1.10.2.tar.gz", hash = "sha256:91b8e218852ef6007c2b98cd861601c6a09f1aa32bbbb74fab5b1c33d4a1e410"},
 ]
-Pygments = [
+pygments = [
     {file = "Pygments-2.13.0-py3-none-any.whl", hash = "sha256:f643f331ab57ba3c9d89212ee4a2dabc6e94f117cf4eefde99a0574720d14c42"},
     {file = "Pygments-2.13.0.tar.gz", hash = "sha256:56a8508ae95f98e2b9bdf93a6be5ae3f7d8af858b43e02c5a2ff083726be40c1"},
 ]

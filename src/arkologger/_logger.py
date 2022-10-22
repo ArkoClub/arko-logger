@@ -22,7 +22,7 @@ from typing_extensions import Self
 
 from arkologger._handler import (
     FileHandler,
-    Handler,
+    MultiProcessingHandler,
 )
 
 if TYPE_CHECKING:
@@ -66,13 +66,15 @@ class Logger(logging.Logger):
         log_path = Path(self.config.project_root).joinpath(self.config.log_path)
         handler, debug_handler, error_handler = (
             # 控制台 log 配置
-            Handler(
+            MultiProcessingHandler(
+                width=self.config.width,
                 locals_max_length=self.config.traceback_locals_max_length,
                 locals_max_string=self.config.traceback_locals_max_string,
                 locals_max_depth=self.config.traceback_locals_max_depth,
             ),
             # debug.log 配置
             FileHandler(
+                width=self.config.width,
                 level=10,
                 path=log_path.joinpath("debug/debug.log"),
                 max_file_size=self.config.max_log_file_size,
@@ -82,6 +84,7 @@ class Logger(logging.Logger):
             ),
             # error.log 配置
             FileHandler(
+                width=self.config.width,
                 level=40,
                 path=log_path.joinpath("error/error.log"),
                 max_file_size=self.config.max_log_file_size,
