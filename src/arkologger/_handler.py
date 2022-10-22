@@ -2,12 +2,7 @@ import logging
 import os
 import sys
 from datetime import datetime
-from multiprocessing import (
-    Queue,
-    Value,
-)
 from pathlib import Path
-from threading import Thread
 from typing import (
     Any,
     Callable,
@@ -49,7 +44,7 @@ if TYPE_CHECKING:
     )
     from logging import LogRecord  # pylint: disable=unused-import
 
-__all__ = ["LogRender", "Handler", "FileHandler", "MultiProcessingHandler"]
+__all__ = ["LogRender", "Handler", "FileHandler"]
 
 FormatTimeCallable = Callable[[datetime], Text]
 
@@ -71,23 +66,16 @@ class LogRender(DefaultLogRender):
     def last_time(self, last_time):
         self._last_time = last_time
 
-    def __init__(self, *args, **kwargs):
-        from arkologger._logger import logger_config
-
-        super(LogRender, self).__init__(*args, **kwargs)
-        self.show_level = True
-        self.time_format = logger_config.time_format
-
     def __call__(
-            self,
-            console: "Console",
-            renderables: Iterable["ConsoleRenderable"],
-            log_time: Optional[datetime] = None,
-            time_format: Optional[Union[str, FormatTimeCallable]] = None,
-            level: TextType = "",
-            path: Optional[str] = None,
-            line_no: Optional[int] = None,
-            link_path: Optional[str] = None,
+        self,
+        console: "Console",
+        renderables: Iterable["ConsoleRenderable"],
+        log_time: Optional[datetime] = None,
+        time_format: Optional[Union[str, FormatTimeCallable]] = None,
+        level: TextType = "",
+        path: Optional[str] = None,
+        line_no: Optional[int] = None,
+        link_path: Optional[str] = None,
     ) -> Table:
         from rich.containers import Renderables
 
@@ -137,40 +125,38 @@ class LogRender(DefaultLogRender):
 
 class Handler(DefaultRichHandler):
     def __init__(
-            self,
-            *args,
-            width: int = None,
-            rich_tracebacks: bool = True,
-            locals_max_depth: Optional[int] = None,
-            **kwargs,
+        self,
+        *args,
+        width: int = None,
+        rich_tracebacks: bool = True,
+        locals_max_depth: Optional[int] = None,
+        tracebacks_max_frames: int = 100,
+        keywords: Optional[List[str]] = None,
+        log_time_format: Union[str, FormatTimeCallable] = "[%x %X]",
+        project_root: Union[str, Path] = "./logs",
+        **kwargs,
     ) -> None:
-        from arkologger._logger import logger_config
-
-        super(Handler, self).__init__(*args, rich_tracebacks=rich_tracebacks,
-                                      **kwargs)
-        self._log_render = LogRender()
+        super(Handler, self).__init__(*args, rich_tracebacks=rich_tracebacks, **kwargs)
+        self._log_render = LogRender(time_format=log_time_format, show_level=True)
         self.console = Console(
             color_system=color_system, theme=Theme(DEFAULT_STYLE), width=width
         )
         self.tracebacks_show_locals = True
-        self.keywords = self.KEYWORDS + logger_config.keywords
+        self.tracebacks_max_frames = tracebacks_max_frames
+        self.keywords = self.KEYWORDS + (keywords or [])
         self.locals_max_depth = locals_max_depth
+        self.project_root = project_root
 
     def render(
-            self,
-            *,
-            record: "LogRecord",
-            traceback: Optional[Traceback],
-            message_renderable: Optional["ConsoleRenderable"],
+        self,
+        *,
+        record: "LogRecord",
+        traceback: Optional[Traceback],
+        message_renderable: Optional["ConsoleRenderable"],
     ) -> "ConsoleRenderable":
-        from arkologger._logger import logger_config
-
         if record.pathname != "<input>":
             try:
-                path = str(
-                    Path(record.pathname).relative_to(
-                        logger_config.project_root)
-                )
+                path = str(Path(record.pathname).relative_to(self.project_root))
                 path = path.split(".")[0].replace(os.sep, ".")
             except ValueError:
                 import site
@@ -213,12 +199,14 @@ class Handler(DefaultRichHandler):
         )
         return log_renderable
 
-    def render_message(self, record: "LogRecord",
-                       message: Any) -> "ConsoleRenderable":
+    def render_message(
+        self,
+        record: "LogRecord",
+        message: Any,
+    ) -> "ConsoleRenderable":
         use_markup = getattr(record, "markup", self.markup)
         if isinstance(message, str):
-            message_text = Text.from_markup(message) if use_markup else Text(
-                message)
+            message_text = Text.from_markup(message) if use_markup else Text(message)
             highlighter = getattr(record, "highlighter", self.highlighter)
         else:
             from rich.highlighter import JSONHighlighter
@@ -243,9 +231,9 @@ class Handler(DefaultRichHandler):
         message = self.format(record)
         _traceback = None
         if (
-                self.rich_tracebacks
-                and record.exc_info
-                and record.exc_info != (None, None, None)
+            self.rich_tracebacks
+            and record.exc_info
+            and record.exc_info != (None, None, None)
         ):
             exc_type, exc_value, exc_traceback = record.exc_info
             if exc_type is None or exc_value is None:
@@ -257,41 +245,42 @@ class Handler(DefaultRichHandler):
                 width=self.tracebacks_width,
                 extra_lines=self.tracebacks_extra_lines,
                 word_wrap=self.tracebacks_word_wrap,
-                show_locals=getattr(record, "show_locals", None)
-                            or self.tracebacks_show_locals,
-                locals_max_length=getattr(record, "locals_max_length", None)
-                                  or self.locals_max_length,
-                locals_max_string=getattr(record, "locals_max_string", None)
-                                  or self.locals_max_string,
+                show_locals=(
+                    getattr(record, "show_locals", None) or self.tracebacks_show_locals
+                ),
+                locals_max_length=(
+                    getattr(record, "locals_max_length", None) or self.locals_max_length
+                ),
+                locals_max_string=(
+                    getattr(record, "locals_max_string", None) or self.locals_max_string
+                ),
                 locals_max_depth=(
                     getattr(record, "locals_max_depth")
                     if hasattr(record, "locals_max_depth")
                     else self.locals_max_depth
                 ),
                 suppress=self.tracebacks_suppress,
+                max_frames=self.tracebacks_max_frames,
             )
             message = record.getMessage()
             if self.formatter:
                 record.message = record.getMessage()
                 formatter = self.formatter
                 if hasattr(formatter, "usesTime") and formatter.usesTime():
-                    record.asctime = formatter.formatTime(record,
-                                                          formatter.datefmt)
+                    record.asctime = formatter.formatTime(record, formatter.datefmt)
                 message = formatter.formatMessage(record)
             if message == str(exc_value):
                 message = None
 
         if message is not None:
             try:
-                message_renderable = self.render_message(record,
-                                                         json.loads(message))
+                message_renderable = self.render_message(record, json.loads(message))
             except JSONDecodeError:
                 message_renderable = self.render_message(record, message)
         else:
             message_renderable = None
         log_renderable = self.render(
-            record=record, traceback=_traceback,
-            message_renderable=message_renderable
+            record=record, traceback=_traceback, message_renderable=message_renderable
         )
         # noinspection PyBroadException
         try:
@@ -300,89 +289,14 @@ class Handler(DefaultRichHandler):
             self.handleError(record)
 
 
-class MultiProcessingHandler(Handler):
+class FileHandler(Handler):
     def __init__(
-            self,
-            *args,
-            rich_tracebacks: bool = True,
-            locals_max_depth: Optional[int] = None,
-            **kwargs,
-    ) -> None:
-        super(MultiProcessingHandler, self).__init__(
-            *args,
-            rich_tracebacks=rich_tracebacks,
-            locals_max_depth=locals_max_depth,
-            **kwargs,
-        )
-        self.queue = Queue(-1)
-        self._is_closed = Value("i", False)
-        # The thread handles receiving records asynchronously.
-        self._receive_thread = Thread(target=self._receive, name=self.name)
-        self._receive_thread.daemon = True
-        self._receive_thread.start()
-
-    def _receive(self):
-        while True:
-            try:
-                if self._is_closed.value and self.queue.empty():
-                    break
-                if not self.queue.empty():
-                    record = self.queue.get_nowait()
-                    super(MultiProcessingHandler, self).emit(record)
-            except (KeyboardInterrupt, SystemExit):
-                raise
-            except (BrokenPipeError, EOFError):
-                break
-            except Exception:
-                from sys import stderr
-                from traceback import print_exc
-
-                print_exc(file=stderr)
-                raise
-
-        self.queue.close()
-        self.queue.join_thread()
-
-    def _send(self, s):
-        self.queue.put_nowait(s)
-
-    def _format_record(self, record):
-
-        if record.args:
-            record.msg = record.msg % record.args
-            record.args = None
-        if record.exc_info:
-            self.format(record)
-            record.exc_info = None
-
-        return record
-
-    def emit(self, record):
-        # noinspection PyBroadException
-        try:
-            s = self._format_record(record)
-            self._send(s)
-        except (KeyboardInterrupt, SystemExit):
-            raise
-        except Exception:
-            self.handleError(record)
-
-    def close(self):
-        if not self._is_closed.value:
-            self._is_closed.value = True
-            self._receive_thread.join(3.0)
-
-            super(MultiProcessingHandler, self).close()
-
-
-class FileHandler(MultiProcessingHandler):
-    def __init__(
-            self,
-            *args,
-            width: int = None,
-            path: Path,
-            max_file_size: Optional[int] = None,
-            **kwargs,
+        self,
+        *args,
+        width: int = None,
+        path: Path,
+        max_file_size: Optional[int] = None,
+        **kwargs,
     ) -> None:
         super().__init__(*args, **kwargs)
         while True:
@@ -399,6 +313,5 @@ class FileHandler(MultiProcessingHandler):
                         parent = parent.parent
         path.parent.mkdir(exist_ok=True)
         self.console = Console(
-            width=width, file=FileIO(path, max_file_size),
-            theme=Theme(DEFAULT_STYLE)
+            width=width, file=FileIO(path, max_file_size), theme=Theme(DEFAULT_STYLE)
         )
