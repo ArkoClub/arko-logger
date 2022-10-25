@@ -370,10 +370,3 @@ class Traceback(BaseTraceback):
                         if frame.locals
                         else syntax
                     )
-
-    def __getstate__(self):
-        breakpoint()
-        return self.__dict__
-
-    def __setstate__(self, state):
-        self.__dict__ = state
