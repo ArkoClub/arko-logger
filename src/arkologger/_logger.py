@@ -57,45 +57,39 @@ class Logger(logging.Logger):
         self.config = config or LoggerConfig()
 
         level_ = 10 if self.config.debug else 20
-        super().__init__(
-            name=self.config.name,
-            level=level_ if self.config.level is None else self.config.level,
-        )
+        super().__init__(name=self.config.name, level=self.config.level or level_)
 
         log_path = Path(self.config.project_root).joinpath(self.config.log_path)
+
+        handler_config = {
+            "width": self.config.width,
+            "locals_max_length": self.config.traceback_locals_max_length,
+            "locals_max_string": self.config.traceback_locals_max_string,
+            "project_root": self.config.project_root,
+            "log_time_format": self.config.time_format,
+        }
         handler, debug_handler, error_handler = (
             # 控制台 log 配置
             Handler(
-                width=self.config.width,
-                locals_max_length=self.config.traceback_locals_max_length,
-                locals_max_string=self.config.traceback_locals_max_string,
+                level=level_,
                 locals_max_depth=self.config.traceback_locals_max_depth,
-                project_root=self.config.project_root,
-                log_time_format=self.config.time_format,
+                **handler_config,
             ),
             # debug.log 配置
             FileHandler(
-                width=self.config.width,
                 level=10,
                 path=log_path.joinpath("debug/debug.log"),
                 max_file_size=self.config.max_log_file_size,
                 locals_max_depth=1,
-                locals_max_length=self.config.traceback_locals_max_length,
-                locals_max_string=self.config.traceback_locals_max_string,
-                project_root=self.config.project_root,
-                log_time_format=self.config.time_format,
+                **handler_config,
             ),
             # error.log 配置
             FileHandler(
-                width=self.config.width,
                 level=40,
                 path=log_path.joinpath("error/error.log"),
                 max_file_size=self.config.max_log_file_size,
-                locals_max_length=self.config.traceback_locals_max_length,
-                locals_max_string=self.config.traceback_locals_max_string,
                 locals_max_depth=self.config.traceback_locals_max_depth,
-                project_root=self.config.project_root,
-                log_time_format=self.config.time_format,
+                **handler_config,
             ),
         )
         logging.basicConfig(
