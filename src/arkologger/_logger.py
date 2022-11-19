@@ -181,6 +181,13 @@ class Logger(logging.Logger):
             break
         return rv
 
+    # noinspection PyShadowingBuiltins
+    def addFilter(
+        self, filter: Union[logging.Filter, Callable[["LogRecord"], int]]
+    ) -> None:
+        for handler in self.handlers:
+            handler.addFilter(filter)
+
 
 class LogFilter(logging.Filter):
     _filter_list: List[Callable[["LogRecord"], bool]] = []
