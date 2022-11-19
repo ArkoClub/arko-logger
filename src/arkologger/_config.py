@@ -41,3 +41,6 @@ class LoggerConfig(BaseSettings):
     traceback_locals_max_depth: Optional[int] = None
     traceback_locals_max_length: int = 10
     traceback_locals_max_string: int = 80
+
+    class Config(BaseSettings.Config):
+        env_prefix = "logger_"

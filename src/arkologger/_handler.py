@@ -1,6 +1,5 @@
 import logging
 import os
-import sys
 from datetime import datetime
 from pathlib import Path
 from typing import (
@@ -8,7 +7,6 @@ from typing import (
     Callable,
     Iterable,
     List,
-    Literal,
     Optional,
     TYPE_CHECKING,
     Union,
@@ -50,11 +48,6 @@ FormatTimeCallable = Callable[[datetime], Text]
 
 logging.addLevelName(5, "TRACE")
 logging.addLevelName(25, "SUCCESS")
-color_system: Literal["windows", "truecolor"]
-if sys.platform == "win32":
-    color_system = "windows"
-else:
-    color_system = "truecolor"
 
 
 class LogRender(DefaultLogRender):
@@ -139,11 +132,11 @@ class Handler(DefaultRichHandler):
         super(Handler, self).__init__(*args, rich_tracebacks=rich_tracebacks, **kwargs)
         self._log_render = LogRender(time_format=log_time_format, show_level=True)
         self.console = Console(
-            color_system=color_system, theme=Theme(DEFAULT_STYLE), width=width
+            color_system="truecolor", theme=Theme(DEFAULT_STYLE), width=width
         )
         self.tracebacks_show_locals = True
         self.tracebacks_max_frames = tracebacks_max_frames
-        self.keywords = self.KEYWORDS + (keywords or [])
+        self.render_keywords = self.KEYWORDS + (keywords or [])
         self.locals_max_depth = locals_max_depth
         self.project_root = project_root
 
@@ -179,17 +172,18 @@ class Handler(DefaultRichHandler):
         time_format = None if self.formatter is None else self.formatter.datefmt
         log_time = datetime.fromtimestamp(record.created)
 
+        if not traceback:
+            renderables = [message_renderable]
+        else:
+            renderables = (
+                [message_renderable, traceback]
+                if message_renderable is not None
+                else [traceback]
+            )
+
         log_renderable = self._log_render(
             self.console,
-            (
-                [message_renderable]
-                if not traceback
-                else (
-                    [message_renderable, traceback]
-                    if message_renderable is not None
-                    else [traceback]
-                )
-            ),
+            renderables,
             log_time=log_time,
             time_format=time_format,
             level=_level,
@@ -219,11 +213,11 @@ class Handler(DefaultRichHandler):
             # noinspection PyCallingNonCallable
             message_text = highlighter(message_text)
 
-        if self.keywords is None:
-            self.keywords = self.KEYWORDS
+        if self.render_keywords is None:
+            self.render_keywords = self.KEYWORDS
 
-        if self.keywords:
-            message_text.highlight_words(self.keywords, "logging.keyword")
+        if self.render_keywords:
+            message_text.highlight_words(self.render_keywords, "logging.keyword")
 
         return message_text
 

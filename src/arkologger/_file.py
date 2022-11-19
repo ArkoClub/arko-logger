@@ -60,11 +60,11 @@ class FileIO(IO[str]):
         file_size = os.path.getsize(self._path)
         modify_date = date.fromtimestamp(os.stat(self._path).st_mtime)
         if modify_date != today:
-            file = self._get_file_name(modify_date)
-            self._path.rename(file)
+            _file = self._get_file_name(modify_date)
+            self._path.rename(_file)
         elif self._max_file_size is not None and file_size >= self._max_file_size:
-            file = self._get_file_name(today)
-            self._path.rename(file)
+            _file = self._get_file_name(today)
+            self._path.rename(_file)
         self._stream = self._path.open(mode="a+", encoding="utf-8")
         return self._stream
 
