@@ -114,7 +114,6 @@ class Traceback(BaseTraceback):
     locals_max_depth: Optional[int]
 
     def __init__(self, *args, locals_max_depth: Optional[int] = None, **kwargs):
-
         kwargs.update({"show_locals": True})
         super(Traceback, self).__init__(*args, **kwargs)
         self.locals_max_depth = locals_max_depth
@@ -136,6 +135,7 @@ class Traceback(BaseTraceback):
         locals_max_depth: Optional[int] = None,
         suppress: Iterable[Union[str, ModuleType]] = (),
         max_frames: int = 100,
+        **kwargs,
     ) -> "Traceback":
         rich_traceback = cls.extract(
             exc_type=exc_type,
@@ -171,6 +171,7 @@ class Traceback(BaseTraceback):
         locals_max_length: int = 10,
         locals_max_string: int = 80,
         locals_max_depth: Optional[int] = None,
+        **kwargs,
     ) -> Trace:
         # noinspection PyProtectedMember
         from rich import _IMPORT_CWD
@@ -297,7 +298,6 @@ class Traceback(BaseTraceback):
 
         excluded = False
         for frame_index, frame in enumerate(stack.frames):
-
             if exclude_frames and frame_index in exclude_frames:
                 excluded = True
                 continue
