@@ -94,7 +94,7 @@ class Logger(logging.Logger):
         )
         logging.basicConfig(
             level=10 if self.config.debug else 20,
-            format="%(message)s",
+            format="%(record)s",
             datefmt=self.config.time_format,
             handlers=[handler, debug_handler, error_handler],
         )

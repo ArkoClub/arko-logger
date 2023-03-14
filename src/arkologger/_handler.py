@@ -76,7 +76,7 @@ class LogRender(DefaultLogRender):
         output.expand = True
         output.add_column(style="log.time")
         output.add_column(style="log.level", width=self.level_width)
-        output.add_column(ratio=1, style="log.message", overflow="fold")
+        output.add_column(ratio=1, style="log.record", overflow="fold")
         if path:
             output.add_column(style="log.path")
         if line_no:
