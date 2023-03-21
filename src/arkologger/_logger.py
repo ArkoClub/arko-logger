@@ -67,6 +67,7 @@ class Logger(logging.Logger):
             "locals_max_string": self.config.traceback_locals_max_string,
             "project_root": self.config.project_root,
             "log_time_format": self.config.time_format,
+            "color_system": self.config.color_system,
         }
         handler, debug_handler, error_handler = (
             # 控制台 log 配置

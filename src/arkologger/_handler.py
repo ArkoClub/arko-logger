@@ -7,6 +7,7 @@ from typing import (
     Callable,
     Iterable,
     List,
+    Literal,
     Optional,
     TYPE_CHECKING,
     Union,
@@ -126,13 +127,16 @@ class Handler(DefaultRichHandler):
         tracebacks_max_frames: int = 100,
         keywords: Optional[List[str]] = None,
         log_time_format: Union[str, FormatTimeCallable] = "[%x %X]",
-        project_root: Union[str, Path] = "./logs",
+        project_root: Union[str, Path] = os.getcwd(),
+        color_system: Literal[
+            "auto", "standard", "256", "truecolor", "windows"
+        ] = "auto",
         **kwargs,
     ) -> None:
         super(Handler, self).__init__(*args, rich_tracebacks=rich_tracebacks, **kwargs)
         self._log_render = LogRender(time_format=log_time_format, show_level=True)
         self.console = Console(
-            color_system="truecolor", theme=Theme(DEFAULT_STYLE), width=width
+            color_system=color_system, theme=Theme(DEFAULT_STYLE), width=width
         )
         self.tracebacks_show_locals = True
         self.tracebacks_max_frames = tracebacks_max_frames

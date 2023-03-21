@@ -2,6 +2,7 @@ from multiprocessing import RLock as Lock
 from pathlib import Path
 from typing import (
     List,
+    Literal,
     Optional,
     Union,
 )
@@ -27,6 +28,7 @@ class LoggerConfig(BaseSettings):
     name: str = "arko-logger"
     level: Optional[Union[str, int]] = None
 
+    color_system: Literal["auto", "standard", "256", "truecolor", "windows"] = "auto"
     debug: bool = False
     width: int = 180
     keywords: List[str] = []
