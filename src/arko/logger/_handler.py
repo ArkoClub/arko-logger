@@ -1,4 +1,3 @@
-import logging
 import os
 from datetime import datetime
 from pathlib import Path
@@ -24,9 +23,9 @@ from rich.text import (
 )
 from rich.theme import Theme
 
-from arkologger._file import FileIO
-from arkologger._style import DEFAULT_STYLE
-from arkologger._traceback import Traceback
+from arko.logger._file import FileIO
+from arko.logging._style import LOGGER_STYLE
+from arko.logger._traceback import Traceback
 
 try:
     import ujson as json
@@ -45,9 +44,6 @@ if TYPE_CHECKING:
 __all__ = ["LogRender", "Handler", "FileHandler"]
 
 FormatTimeCallable = Callable[[datetime], Text]
-
-logging.addLevelName(5, "TRACE")
-logging.addLevelName(25, "SUCCESS")
 
 
 class LogRender(DefaultLogRender):
@@ -299,19 +295,7 @@ class FileHandler(Handler):
         **kwargs,
     ) -> None:
         super().__init__(*args, **kwargs)
-        while True:
-            try:
-                path.parent.mkdir(exist_ok=True)
-                break
-            except FileNotFoundError:
-                parent = path.parent
-                while True:
-                    try:
-                        parent.mkdir(exist_ok=True)
-                        break
-                    except FileNotFoundError:
-                        parent = parent.parent
-        path.parent.mkdir(exist_ok=True)
+        path.parent.mkdir(exist_ok=True, parents=True)
         self.console = Console(
             width=width, file=FileIO(path, max_file_size), theme=Theme(DEFAULT_STYLE)
         )

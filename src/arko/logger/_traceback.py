@@ -43,7 +43,7 @@ from rich.traceback import (
     Traceback as BaseTraceback,
 )
 
-from arkologger._style import MonokaiProStyle
+from arko.logging._style import MonokaiProStyle
 
 if TYPE_CHECKING:
     from rich.console import ConsoleRenderable  # pylint: disable=W0611
@@ -211,9 +211,9 @@ class Traceback(BaseTraceback):
             for frame_summary, line_no in traceback_.walk_tb(traceback):
                 filename = frame_summary.f_code.co_filename
                 if (
-                    filename
-                    and not filename.startswith("<")
-                    and not os.path.isabs(filename)
+                        filename
+                        and not filename.startswith("<")
+                        and not os.path.isabs(filename)
                 ):
                     filename = os.path.join(_IMPORT_CWD, filename)
                 if frame_summary.f_locals.get("_rich_traceback_omit", False):
@@ -271,7 +271,7 @@ class Traceback(BaseTraceback):
             code = code_cache.get(filename)
             if code is None:
                 with open(
-                    filename, "rt", encoding="utf-8", errors="replace"
+                        filename, "rt", encoding="utf-8", errors="replace"
                 ) as code_file:
                     code = code_file.read()
                 code_cache[filename] = code

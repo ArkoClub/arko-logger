@@ -20,13 +20,13 @@ from typing import (
 
 from typing_extensions import Self
 
-from arkologger._handler import (
+from arko.logger._handler import (
     FileHandler,
     Handler,
 )
 
 if TYPE_CHECKING:
-    from arkologger import LoggerConfig
+    from arko.logger import LoggerConfig
     from logging import LogRecord  # pylint: disable=unused-import
 
 __all__ = ["Logger", "LogFilter"]
@@ -40,6 +40,9 @@ ExceptionInfoType = Union[bool, SysExcInfoType, BaseException]
 _lock = Lock()
 NONE = object()
 
+logging.addLevelName(5, "TRACE")
+logging.addLevelName(25, "SUCCESS")
+
 
 class Logger(logging.Logger):
     _instance: Optional["Logger"] = None
@@ -47,24 +50,25 @@ class Logger(logging.Logger):
     def __new__(cls, *args, **kwargs) -> "Logger":
         with _lock:
             if cls._instance is None:
-                result = super(Logger, cls).__new__(cls)
-                cls._instance = result
+                cls._instance = super(Logger, cls).__new__(cls, *args, **kwargs)
         return cls._instance
 
     def __init__(self, config: "LoggerConfig" = None) -> None:
-        from arkologger import LoggerConfig
+        from arko.logger import LoggerConfig
 
         self.config = config or LoggerConfig()
 
-        level_ = 10 if self.config.debug else 20
-        super().__init__(name=self.config.name, level=self.config.level or level_)
+        level_ = logging.getLevelName(
+            self.config.level if self.config.level is not None else "INFO"
+        )
+        super().__init__(name=self.config.name, level=level_)
 
         log_path = Path(self.config.project_root).joinpath(self.config.log_path)
 
         handler_config = {
             "width": self.config.width,
-            "locals_max_length": self.config.traceback_locals_max_length,
-            "locals_max_string": self.config.traceback_locals_max_string,
+            "locals_max_length": self.config.traceback.locals.max_length,
+            "locals_max_string": self.config.traceback.locals.max_string,
             "project_root": self.config.project_root,
             "log_time_format": self.config.time_format,
         }
@@ -72,7 +76,7 @@ class Logger(logging.Logger):
             # 控制台 log 配置
             Handler(
                 level=level_,
-                locals_max_depth=self.config.traceback_locals_max_depth,
+                locals_max_depth=self.config.traceback.locals.max_depth,
                 **handler_config,
             ),
             # debug.log 配置
@@ -88,7 +92,7 @@ class Logger(logging.Logger):
                 level=40,
                 path=log_path.joinpath("error/error.log"),
                 max_file_size=self.config.max_log_file_size,
-                locals_max_depth=self.config.traceback_locals_max_depth,
+                locals_max_depth=self.config.traceback.locals.max_depth,
                 **handler_config,
             ),
         )
