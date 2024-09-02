@@ -35,6 +35,8 @@ class LoggerConfig(BaseSettings):
     name: str = "arko-logger"
     level: str | int | None = None
 
+    markup: bool = False
+
     multiprocess: bool = False
 
     color_system: Literal["auto", "standard", "256", "truecolor", "windows"] = "auto"

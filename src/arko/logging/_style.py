@@ -18,7 +18,7 @@ from rich.style import Style
 
 __all__ = [
     "MonokaiProStyle",
-    "LOGGER_STYLE",
+    "ARKO_STYLE",
     "BACKGROUND",
     "FOREGROUND",
     "BLACK",
@@ -90,7 +90,7 @@ class MonokaiProStyle(PyStyle):
     }
 
 
-LOGGER_STYLE: Dict[str, Style] = {
+ARKO_STYLE: Dict[str, Style] = {
     # base
     "none": Style.null(),
     "reset": Style(
